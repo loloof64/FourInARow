@@ -18,6 +18,15 @@ const CANVAS_HEIGHT = BOARD_HEIGHT + SELECTION_HEIGHT;
 function Scene() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [coins, setCoins] = useState<CoinType[][]>([]);
+  const [movingCoinCol, setMovingCoinCol] = useState<number|null>(null);
+  const [movingCoinY, setMovingCoinY] = useState<number|null>(null);
+  const [movingCoinType, setMovingCoinType] = useState<CoinType|null>(null);
+
+  function dropCoin(col: number, type: CoinType) {
+    setMovingCoinCol(col);
+    setMovingCoinY(80);
+    setMovingCoinType(type);
+  }
 
   function getEmptyBoardData(): CoinType[][] {
     let newValue: CoinType[][] = [];
@@ -28,6 +37,10 @@ function Scene() {
       }
       newValue[row] = [...lineValue];
     }
+
+    ////////////////////////////
+    newValue[0][3] = CoinType.YELLOW;
+    ////////////////////////////
 
     return newValue;
   }
@@ -40,6 +53,20 @@ function Scene() {
     // Selection zone
     ctx.fillStyle = "gray";
     ctx.fillRect(0, 0, BOARD_WIDTH, SELECTION_HEIGHT);
+
+    // Moving coin (part outside of the board)
+    if (movingCoinCol !== null && movingCoinY !== null && movingCoinType !== null) {
+      ctx.fillStyle = movingCoinType === CoinType.RED ? "red" : "yellow";
+      ctx.beginPath();
+      ctx.arc(
+        CELL_SIZE * (movingCoinCol + 0.5),
+        movingCoinY,
+        COIN_SIZE / 2,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
 
     // Board background
     ctx.fillStyle = "blue";
@@ -92,6 +119,20 @@ function Scene() {
       }
     }
 
+    // Moving coin (part inside of the board)
+    if (movingCoinCol !== null && movingCoinY !== null && movingCoinType !== null) {
+      ctx.fillStyle = movingCoinType === CoinType.RED ? "red" : "yellow";
+      ctx.beginPath();
+      ctx.arc(
+        CELL_SIZE * (movingCoinCol + 0.5),
+        movingCoinY,
+        COIN_SIZE / 2,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
+
     ctx.restore();
   }
 
@@ -102,6 +143,12 @@ function Scene() {
   useEffect(() => {
     drawBoard();
   }, [canvas, coins]);
+
+  //////////////////////
+  useEffect(() => {
+    dropCoin(3, CoinType.RED);
+  }, [])
+  /////////////////////
 
   return (
     <canvas ref={canvas} width={CANVAS_WIDTH} height={CANVAS_HEIGHT}></canvas>
