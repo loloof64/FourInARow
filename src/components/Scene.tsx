@@ -15,6 +15,8 @@ const SELECTION_HEIGHT = CELL_SIZE;
 const CANVAS_WIDTH = BOARD_WIDTH;
 const CANVAS_HEIGHT = BOARD_HEIGHT + SELECTION_HEIGHT;
 
+const DROP_COIN_START_Y = 35;
+
 function Scene() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [coins, setCoins] = useState<CoinType[][]>([]);
@@ -24,7 +26,7 @@ function Scene() {
 
   function dropCoin(col: number, type: CoinType) {
     setMovingCoinCol(col);
-    setMovingCoinY(80);
+    setMovingCoinY(DROP_COIN_START_Y);
     setMovingCoinType(type);
   }
 
@@ -37,10 +39,6 @@ function Scene() {
       }
       newValue[row] = [...lineValue];
     }
-
-    ////////////////////////////
-    newValue[0][3] = CoinType.YELLOW;
-    ////////////////////////////
 
     return newValue;
   }
