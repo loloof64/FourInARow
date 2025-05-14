@@ -69,8 +69,10 @@ function Scene() {
     ctx.fill();
     ctx.clip();
 
+    // Coins
     for (let row = 0; row < 6; row++) {
       for (let col = 0; col < 7; col++) {
+        const realRow = 5 -row;
         if (coins[row][col] === CoinType.RED) {
           ctx.fillStyle = "red";
         } else if (coins[row][col] === CoinType.YELLOW) {
@@ -81,7 +83,7 @@ function Scene() {
         ctx.beginPath();
         ctx.arc(
           CELL_SIZE * (col + 0.5),
-          CELL_SIZE * (row + 0.5) + SELECTION_HEIGHT,
+          CELL_SIZE * (realRow + 0.5) + SELECTION_HEIGHT,
           COIN_SIZE / 2,
           0,
           Math.PI * 2
