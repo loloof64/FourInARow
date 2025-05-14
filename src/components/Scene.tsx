@@ -1,4 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+
+export enum CoinType {
+  RED,
+  YELLOW,
+  UNSET,
+}
 
 const COIN_SIZE = 50;
 const CELL_SIZE = Math.floor(COIN_SIZE * 1.3);
@@ -11,8 +17,23 @@ const CANVAS_HEIGHT = BOARD_HEIGHT + SELECTION_HEIGHT;
 
 function Scene() {
   const canvas = useRef<HTMLCanvasElement>(null);
+  const [coins, setCoins] = useState<CoinType[][]>([]);
 
-  useEffect(() => {
+  function getEmptyBoardData(): CoinType[][] {
+    let newValue: CoinType[][] = [];
+    for (let row = 0; row < 6; row++) {
+      let lineValue: CoinType[] = [];
+      for (let col = 0; col < 7; col++) {
+        lineValue[col] = CoinType.UNSET;
+      }
+      newValue[row] = [...lineValue];
+    }
+
+    return newValue;
+  }
+
+  function drawBoard() {
+    if (coins.length === 0) return;
     const ctx = canvas.current?.getContext("2d");
     if (ctx == null) return;
 
@@ -48,20 +69,37 @@ function Scene() {
     ctx.fill();
     ctx.clip();
 
-    // Coin
-    ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
-    ctx.beginPath();
-    ctx.arc(
-      CELL_SIZE * (2 + 0.5),
-      CELL_SIZE * (3 + 0.5) + COIN_SIZE * 0.2,
-      COIN_SIZE / 2,
-      0,
-      Math.PI * 2
-    );
-    ctx.fill();
+    for (let row = 0; row < 6; row++) {
+      for (let col = 0; col < 7; col++) {
+        if (coins[row][col] === CoinType.RED) {
+          ctx.fillStyle = "red";
+        } else if (coins[row][col] === CoinType.YELLOW) {
+          ctx.fillStyle = "yellow";
+        } else {
+          continue;
+        }
+        ctx.beginPath();
+        ctx.arc(
+          CELL_SIZE * (col + 0.5),
+          CELL_SIZE * (row + 0.5) + SELECTION_HEIGHT,
+          COIN_SIZE / 2,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+      }
+    }
 
     ctx.restore();
-  }, [canvas]);
+  }
+
+  useEffect(() => {
+    setCoins(getEmptyBoardData());
+  }, []);
+
+  useEffect(() => {
+    drawBoard();
+  }, [canvas, coins]);
 
   return (
     <canvas ref={canvas} width={CANVAS_WIDTH} height={CANVAS_HEIGHT}></canvas>
