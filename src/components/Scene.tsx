@@ -28,6 +28,7 @@ function Scene() {
   const [movingCoinTargetY, setMovingCoinTargetY] = useState<number | null>(
     null
   );
+  const [nextCoinRow, setNextCoinRow] = useState<number | null>(null);
 
   function dropCoin(col: number, type: CoinType) {
     if (coins.length === 0) return;
@@ -43,6 +44,7 @@ function Scene() {
     }
     const targetLine = 5 - filledHoles;
     const targetY = SELECTION_HEIGHT + (targetLine + 0.5) * CELL_SIZE;
+    setNextCoinRow(filledHoles);
     setMovingCoinTargetY(targetY);
   }
 
@@ -55,7 +57,23 @@ function Scene() {
       }
       newValue[row] = [...lineValue];
     }
+    
+    return newValue;
+  }
 
+  function updatedBoard(
+    movingCoinType: CoinType,
+    movingCoinCol: number,
+    nextCoinRow: number
+  ) {
+    let newValue: CoinType[][] = coins;
+    if (
+      nextCoinRow !== null &&
+      movingCoinCol !== null &&
+      movingCoinType !== null
+    ) {
+      newValue[nextCoinRow][movingCoinCol] = movingCoinType;
+    }
     return newValue;
   }
 
@@ -177,10 +195,23 @@ function Scene() {
 
     const intervalId = setInterval(() => {
       setMovingCoinY((prevY) => {
-        if (prevY === null) return null;
+        if (
+          prevY === null ||
+          movingCoinType === null ||
+          movingCoinCol === null ||
+          nextCoinRow === null
+        )
+          return null;
         const newY = prevY + 5;
         if (newY > movingCoinTargetY) {
           clearInterval(intervalId);
+          const newBoardArray = updatedBoard(
+            movingCoinType,
+            movingCoinCol,
+            nextCoinRow
+          );
+          setCoins(newBoardArray);
+          setNextCoinRow(null);
           setMovingCoinCol(null);
           setMovingCoinType(null);
           setMovingCoinTargetY(null);
