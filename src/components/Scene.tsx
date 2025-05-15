@@ -51,6 +51,8 @@ const Scene = forwardRef<SceneRef, SceneProps>((_props, ref) => {
   const [nextCoinRow, setNextCoinRow] = useState<number | null>(null);
   const [waitingCoinCol, setWaitingCoinCol] = useState<number | null>(null);
   const [waitingCoinType, setWaitingCoinType] = useState<CoinType | null>(null);
+  const [savedWaitingCoinCol, setSavedWaitingCoinCol]= useState<number>(0);
+  const [savedWaitingCoinType, setSavedWaitingCoinType]= useState<CoinType>(CoinType.RED);
 
   function dropNextCoin() {
     if (waitingCoinCol !== null && waitingCoinType !== null) {
@@ -96,6 +98,8 @@ const Scene = forwardRef<SceneRef, SceneProps>((_props, ref) => {
     const targetLine = 5 - filledHoles;
     const targetY = SELECTION_HEIGHT + (targetLine + 0.5) * CELL_SIZE;
 
+    if (waitingCoinCol !== null) setSavedWaitingCoinCol(waitingCoinCol);
+    if (waitingCoinType !== null) setSavedWaitingCoinType(waitingCoinType);
     setWaitingCoinCol(null);
     setWaitingCoinType(null);
 
@@ -255,7 +259,9 @@ const Scene = forwardRef<SceneRef, SceneProps>((_props, ref) => {
 
   useEffect(() => {
     setWaitingCoinCol(0);
+    setSavedWaitingCoinCol(0);
     setWaitingCoinType(CoinType.RED);
+    setSavedWaitingCoinCol(CoinType.RED);
   }, []);
 
   useEffect(() => {
@@ -283,6 +289,8 @@ const Scene = forwardRef<SceneRef, SceneProps>((_props, ref) => {
           setMovingCoinCol(null);
           setMovingCoinType(null);
           setMovingCoinTargetY(null);
+          setWaitingCoinCol(savedWaitingCoinCol);
+          setWaitingCoinType(savedWaitingCoinType == CoinType.RED ? CoinType.YELLOW : CoinType.RED);
           return movingCoinTargetY;
         }
         return newY;
