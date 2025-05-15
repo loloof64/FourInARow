@@ -184,6 +184,7 @@ const Scene = forwardRef<SceneRef, SceneProps>((_props, ref) => {
     ctx.fillStyle = "blue";
     ctx.fillRect(0, SELECTION_HEIGHT, BOARD_WIDTH, BOARD_HEIGHT);
 
+    //---- Clipping path
     ctx.save();
 
     // Board holes
@@ -250,6 +251,7 @@ const Scene = forwardRef<SceneRef, SceneProps>((_props, ref) => {
     }
 
     ctx.restore();
+    //---- End of clipping path
   }
 
   useEffect(() => {
