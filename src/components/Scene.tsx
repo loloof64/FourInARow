@@ -85,16 +85,19 @@ const Scene = forwardRef<SceneRef, SceneProps>((_props, ref) => {
   function dropCoin(col: number, type: CoinType) {
     if (coins.length === 0) return;
 
-    setMovingCoinCol(col);
-    setMovingCoinY(DROP_COIN_START_Y);
-    setMovingCoinType(type);
-
     let filledHoles = 0;
     for (let j = 0; j < 6; j++) {
       if (coins[j][col] !== CoinType.UNSET) {
         filledHoles++;
       }
     }
+    if (filledHoles >= 6) return;
+
+    setMovingCoinCol(col);
+    setMovingCoinY(DROP_COIN_START_Y);
+    setMovingCoinType(type);
+
+
     const targetLine = 5 - filledHoles;
     const targetY = SELECTION_HEIGHT + (targetLine + 0.5) * CELL_SIZE;
 
