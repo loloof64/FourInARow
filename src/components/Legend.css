@@ -1,0 +1,32 @@
+/* Legend.css */
+
+.legendRoot {
+  margin: 20px;
+}
+
+.legendRoot table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.legendRoot th, .legendRoot td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.legendRoot th {
+  background-color: gray;
+}
+
+.legendRoot tr:hover {
+  background-color: lightgray;
+}
+
+.legendRoot td:first-child, .legendRoot th:first-child {
+  padding-left: 20px;
+}
+
+.legendRoot td:last-child, .legendRoot th:last-child {
+  padding-right: 20px;
+}

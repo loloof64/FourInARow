@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import "./App.css";
-import Controls from "./components/Controls";
 import Scene, { SceneRef } from "./components/Scene";
+import Legend from "./components/Legend";
 
 function App() {
   const sceneRef = useRef<SceneRef | null>(null);
@@ -29,7 +29,7 @@ function App() {
   return (
     <div id="root">
       <Scene ref={sceneRef} />
-      <Controls sceneRef={sceneRef} />
+      <Legend />
     </div>
   );
 }
