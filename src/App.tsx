@@ -1,11 +1,15 @@
+import { useRef } from 'react';
 import './App.css'
-import Scene from './components/Scene'
+import Controls from './components/Controls'
+import Scene, { SceneRef } from './components/Scene'
 
 function App() {
+  const sceneRef = useRef<SceneRef|null>(null);
   return (
-    <>
-      <Scene />
-    </>
+    <div id='root'>
+      <Scene ref={sceneRef} />
+      <Controls sceneRef={sceneRef} />
+    </div>
   )
 }
 

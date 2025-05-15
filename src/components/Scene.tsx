@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 
 export enum CoinType {
   RED,
@@ -19,7 +25,21 @@ const DROP_COIN_START_Y = 35;
 
 const dropAnimationIntervalMs = 10;
 
-function Scene() {
+interface SceneProps {}
+
+export interface SceneRef {
+  dropNextCoin: () => void;
+  moveCoinLeft: () => void;
+  moveCoinRight: () => void;
+}
+
+const Scene = forwardRef<SceneRef, SceneProps>((_props, ref) => {
+  useImperativeHandle(ref, () => ({
+    dropNextCoin,
+    moveCoinLeft,
+    moveCoinRight,
+  }));
+
   const canvas = useRef<HTMLCanvasElement>(null);
   const [coins, setCoins] = useState<CoinType[][]>([]);
   const [movingCoinCol, setMovingCoinCol] = useState<number | null>(null);
@@ -29,9 +49,40 @@ function Scene() {
     null
   );
   const [nextCoinRow, setNextCoinRow] = useState<number | null>(null);
+  const [waitingCoinCol, setWaitingCoinCol] = useState<number | null>(null);
+  const [waitingCoinType, setWaitingCoinType] = useState<CoinType | null>(null);
+
+  function dropNextCoin() {
+    if (waitingCoinCol !== null && waitingCoinType !== null) {
+      dropCoin(waitingCoinCol, waitingCoinType);
+    }
+  }
+
+  function moveCoinLeft() {
+    if (waitingCoinCol !== null && waitingCoinType !== null) {
+      setWaitingCoinCol((prevCol) => {
+        if (prevCol == null) return null;
+        let newCol = prevCol - 1;
+        if (newCol < 0) newCol = 6;
+        return newCol;
+      });
+    }
+  }
+
+  function moveCoinRight() {
+    if (waitingCoinCol !== null && waitingCoinType !== null) {
+      setWaitingCoinCol((prevCol) => {
+        if (prevCol == null) return null;
+        let newCol = prevCol + 1;
+        if (newCol > 6) newCol = 0;
+        return newCol;
+      });
+    }
+  }
 
   function dropCoin(col: number, type: CoinType) {
     if (coins.length === 0) return;
+
     setMovingCoinCol(col);
     setMovingCoinY(DROP_COIN_START_Y);
     setMovingCoinType(type);
@@ -44,6 +95,10 @@ function Scene() {
     }
     const targetLine = 5 - filledHoles;
     const targetY = SELECTION_HEIGHT + (targetLine + 0.5) * CELL_SIZE;
+
+    setWaitingCoinCol(null);
+    setWaitingCoinType(null);
+
     setNextCoinRow(filledHoles);
     setMovingCoinTargetY(targetY);
   }
@@ -57,7 +112,7 @@ function Scene() {
       }
       newValue[row] = [...lineValue];
     }
-    
+
     return newValue;
   }
 
@@ -77,7 +132,7 @@ function Scene() {
     return newValue;
   }
 
-  function drawBoard() {
+  function drawScene() {
     if (coins.length === 0) return;
     const ctx = canvas.current?.getContext("2d");
     if (ctx == null) return;
@@ -85,6 +140,20 @@ function Scene() {
     // Selection zone
     ctx.fillStyle = "gray";
     ctx.fillRect(0, 0, BOARD_WIDTH, SELECTION_HEIGHT);
+
+    // Waiting coin
+    if (waitingCoinCol !== null && waitingCoinType !== null) {
+      ctx.fillStyle = waitingCoinType === CoinType.RED ? "red" : "yellow";
+      ctx.beginPath();
+      ctx.arc(
+        CELL_SIZE * (waitingCoinCol + 0.5),
+        SELECTION_HEIGHT / 2,
+        COIN_SIZE / 2,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+    }
 
     // Moving coin (part outside of the board)
     if (
@@ -181,14 +250,13 @@ function Scene() {
   }, []);
 
   useEffect(() => {
-    drawBoard();
-  }, [canvas, coins, movingCoinY]);
+    drawScene();
+  }, [canvas, coins, movingCoinY, waitingCoinCol, waitingCoinType]);
 
-  //////////////////////
   useEffect(() => {
-    dropCoin(3, CoinType.RED);
-  }, [coins]);
-  /////////////////////
+    setWaitingCoinCol(0);
+    setWaitingCoinType(CoinType.RED);
+  }, []);
 
   useEffect(() => {
     if (movingCoinY === null || movingCoinTargetY === null) return;
@@ -229,6 +297,6 @@ function Scene() {
   return (
     <canvas ref={canvas} width={CANVAS_WIDTH} height={CANVAS_HEIGHT}></canvas>
   );
-}
+});
 
 export default Scene;
