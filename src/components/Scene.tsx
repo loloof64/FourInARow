@@ -17,17 +17,33 @@ const CANVAS_HEIGHT = BOARD_HEIGHT + SELECTION_HEIGHT;
 
 const DROP_COIN_START_Y = 35;
 
+const dropAnimationIntervalMs = 10;
+
 function Scene() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [coins, setCoins] = useState<CoinType[][]>([]);
-  const [movingCoinCol, setMovingCoinCol] = useState<number|null>(null);
-  const [movingCoinY, setMovingCoinY] = useState<number|null>(null);
-  const [movingCoinType, setMovingCoinType] = useState<CoinType|null>(null);
+  const [movingCoinCol, setMovingCoinCol] = useState<number | null>(null);
+  const [movingCoinY, setMovingCoinY] = useState<number | null>(null);
+  const [movingCoinType, setMovingCoinType] = useState<CoinType | null>(null);
+  const [movingCoinTargetY, setMovingCoinTargetY] = useState<number | null>(
+    null
+  );
 
   function dropCoin(col: number, type: CoinType) {
+    if (coins.length === 0) return;
     setMovingCoinCol(col);
     setMovingCoinY(DROP_COIN_START_Y);
     setMovingCoinType(type);
+
+    let filledHoles = 0;
+    for (let j = 0; j < 6; j++) {
+      if (coins[j][col] !== CoinType.UNSET) {
+        filledHoles++;
+      }
+    }
+    const targetLine = 5 - filledHoles;
+    const targetY = SELECTION_HEIGHT + (targetLine + 0.5) * CELL_SIZE;
+    setMovingCoinTargetY(targetY);
   }
 
   function getEmptyBoardData(): CoinType[][] {
@@ -53,7 +69,11 @@ function Scene() {
     ctx.fillRect(0, 0, BOARD_WIDTH, SELECTION_HEIGHT);
 
     // Moving coin (part outside of the board)
-    if (movingCoinCol !== null && movingCoinY !== null && movingCoinType !== null) {
+    if (
+      movingCoinCol !== null &&
+      movingCoinY !== null &&
+      movingCoinType !== null
+    ) {
       ctx.fillStyle = movingCoinType === CoinType.RED ? "red" : "yellow";
       ctx.beginPath();
       ctx.arc(
@@ -97,7 +117,7 @@ function Scene() {
     // Coins
     for (let row = 0; row < 6; row++) {
       for (let col = 0; col < 7; col++) {
-        const realRow = 5 -row;
+        const realRow = 5 - row;
         if (coins[row][col] === CoinType.RED) {
           ctx.fillStyle = "red";
         } else if (coins[row][col] === CoinType.YELLOW) {
@@ -118,7 +138,11 @@ function Scene() {
     }
 
     // Moving coin (part inside of the board)
-    if (movingCoinCol !== null && movingCoinY !== null && movingCoinType !== null) {
+    if (
+      movingCoinCol !== null &&
+      movingCoinY !== null &&
+      movingCoinType !== null
+    ) {
       ctx.fillStyle = movingCoinType === CoinType.RED ? "red" : "yellow";
       ctx.beginPath();
       ctx.arc(
@@ -140,13 +164,36 @@ function Scene() {
 
   useEffect(() => {
     drawBoard();
-  }, [canvas, coins]);
+  }, [canvas, coins, movingCoinY]);
 
   //////////////////////
   useEffect(() => {
     dropCoin(3, CoinType.RED);
-  }, [])
+  }, [coins]);
   /////////////////////
+
+  useEffect(() => {
+    if (movingCoinY === null || movingCoinTargetY === null) return;
+
+    const intervalId = setInterval(() => {
+      setMovingCoinY((prevY) => {
+        if (prevY === null) return null;
+        const newY = prevY + 5;
+        if (newY > movingCoinTargetY) {
+          clearInterval(intervalId);
+          setMovingCoinCol(null);
+          setMovingCoinType(null);
+          setMovingCoinTargetY(null);
+          return movingCoinTargetY;
+        }
+        return newY;
+      });
+    }, dropAnimationIntervalMs);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [movingCoinY, movingCoinTargetY]);
 
   return (
     <canvas ref={canvas} width={CANVAS_WIDTH} height={CANVAS_HEIGHT}></canvas>
